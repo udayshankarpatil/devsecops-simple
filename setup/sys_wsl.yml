@@ -1,0 +1,55 @@
+---
+- name: Setup WSL Ubuntu DevSecOps Environment
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+
+  vars:
+    arch: "amd64"
+    k8s_version: "v1.31"
+    kind_version: "v0.24.0"
+    helm_script_url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+    kind_download_url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ arch }}"
+    k8s_pkg_url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_version }}/deb"
+    k8s_apt_keyring: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+    k8s_apt_source: "/etc/apt/sources.list.d/kubernetes.list"
+    tools_bin: "/usr/local/bin"
+
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install baseline dependencies
+      ansible.builtin.apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - python3-pip
+        state: present
+
+    - name: Install Kubectl via official Repo
+      ansible.builtin.shell: |
+        curl -fsSL {{k8s_pkg_url}}/Release.key | gpg --dearmor -o {{k8s_apt_keyring}}
+        echo 'deb [signed-by={{k8s_apt_keyring}}] {{k8s_pkg_url}}/ /' | tee {{k8s_apt_source}}
+        apt-get update && apt-get install -y kubectl
+      args:
+        creates: /usr/bin/kubectl
+
+    - name: Install Kind (Kubernetes in Docker)
+      ansible.builtin.get_url:
+        url: "{{kind_download_url}}"
+        dest: "{{tools_bin}}/kind"
+        mode: '0755'
+      become: true
+
+    - name: Install Helm (K8s Package Manager)
+      ansible.builtin.shell:
+        cmd: curl {{helm_script_url}} | bash
+        creates: "{{tools_bin}}/helm"
+      become: true
