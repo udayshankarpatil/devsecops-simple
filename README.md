@@ -23,3 +23,12 @@ ansible-playbook [-K] setup/sys_wsl.yml
 ansible-playbook [-K] [--check | --diff | --list-hosts | --list-tasks | --syntax-check] setup/sys_wsl.yml
 ansible-lint setup/sys_wsl.yml
 ```
+
+
+```shell
+# 1. Initialize Terraform
+cd terraform && terraform init && cd ..
+
+# 2. Run the master bootstrap
+ansible-playbook bootstrap copy.yml
+```

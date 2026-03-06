@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dummy-app
+  template:
+    metadata:
+      labels:
+        app: dummy-app
+    spec:
+      containers:
+      - name: dummy-app
+        image: local-dummy-app:latest
+        imagePullPolicy: Never # Crucial: tells K8s to use the image we loaded via Kind
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-app-service
+spec:
+  type: NodePort
+  selector:
+    app: dummy-app
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
