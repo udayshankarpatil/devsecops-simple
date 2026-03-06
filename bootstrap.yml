@@ -7,6 +7,7 @@
       community.general.terraform:
         project_path: "./terraform"
         state: present
+        force_init: true
 
     - name: Add ArgoCD via Helm
       kubernetes.core.helm:
@@ -18,4 +19,4 @@
     - name: Apply ArgoCD Application Manifest
       kubernetes.core.k8s:
         state: present
-        src: ./k8s/argocd-app.yaml
+        src: ./k8s/argocd-app.yml
