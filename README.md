@@ -1,3 +1,5 @@
+![Build Status](https://github.com/udayshankarpatil/devsecops-simple/actions/workflows/pipeline.yml/badge.badge.svg)
+
 # DevSecOps Simple
 A DevSecOps "Hello World!" project
 
