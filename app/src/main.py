@@ -12,4 +12,3 @@ def read_root() -> Dict[str, str]:
 @app.get("/health")
 def health_check() -> Dict[str, str]:
     return {"status": "healthy"}
-
