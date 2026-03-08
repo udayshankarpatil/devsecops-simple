@@ -23,13 +23,12 @@ jobs:
       - name: Where am I?
         run: |
           echo "Current directory: $(pwd)"
-          cd app
-          echo "Current directory: $(pwd)"
           echo "Files in this directory:"
           ls -a
 
       - name: Install and Test
         run: |
+          cd app
           pip install .[dev]
           pytest
 
