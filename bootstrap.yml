@@ -1,0 +1,22 @@
+---
+- name: Bootstrap Devops Lab
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Provision Kind Cluster with Terraform
+      community.general.terraform:
+        project_path: "./terraform"
+        state: present
+        force_init: true
+
+    - name: Add ArgoCD via Helm
+      kubernetes.core.helm:
+        name: argocd
+        chart_ref: argo/argo-cd
+        release_namespace: argocd
+        create_namespace: true
+
+    - name: Apply ArgoCD Application Manifest
+      kubernetes.core.k8s:
+        state: present
+        src: ./k8s/argocd-app.yml

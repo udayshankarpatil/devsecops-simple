@@ -1,0 +1,7 @@
+# https://docs.pytest.org/en/stable/reference/index.html
+[pytest]
+filterwarnings = ["ignore::DeprecationWarning"]
+pythonpath = ["src"]
+testpaths = ["tst"]
+markers = ["unit"]
+addopts = ["-ra"]

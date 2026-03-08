@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dummy-app-gitops
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/udayshankarpatil/devsecops-simple.git
+    targetRevision: HEAD
+    path: k8s          # Path inside the repo to watch
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true      # Deletes resources if you delete them from Git
+      selfHeal: true   # Overwrites manual changes in the cluster
