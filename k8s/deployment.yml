@@ -22,7 +22,6 @@ spec:
         - containerPort: 80
         # Recommended: Ensures K8s always tries to get the latest version of that specific tag
         imagePullPolicy: IfNotPresent
-
 ---
 apiVersion: v1
 kind: Service
