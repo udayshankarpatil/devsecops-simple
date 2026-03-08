@@ -17,6 +17,10 @@ jobs:
     container:
       image: python:3.11-slim
     steps:
+      - name: Update packages
+        run: |
+          pip install --upgrade pip
+      
       - name: Checkout Code
         uses: actions/checkout@v4  # This pulls the code INTO the container's workspace
 
