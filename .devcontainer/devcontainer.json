@@ -1,0 +1,26 @@
+{
+    "name": "DevSecOps",
+    "build": {
+        "dockerfile": "../app/Dockerfile",
+        "context": "../app"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "njpwerner.autodocstring",
+                "redhat.vscode-yaml",
+                "ms-python.black-formatter",
+                "charliermarsh.ruff"
+                
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python"
+            }
+        }
+    },
+    "remoteUser": "root",
+    "postCreateCommand": "pip install -e 'app[dev]'",
+    "initializeCommand": "ls"
+}

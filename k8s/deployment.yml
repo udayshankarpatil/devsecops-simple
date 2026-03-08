@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-app
+  labels:
+    app: dummy-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dummy-app
+  template:
+    metadata:
+      labels:
+        app: dummy-app
+    spec:
+      containers:
+      - name: dummy-app
+        # The pipeline 'sed' command specifically targets this line
+        image: ghcr.io/YOUR_GITHUB_USERNAME/dummy-app:placeholder
+        ports:
+        - containerPort: 80
+        # Recommended: Ensures K8s always tries to get the latest version of that specific tag
+        imagePullPolicy: IfNotPresent 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-app-service
+spec:
+  type: NodePort
+  selector:
+    app: dummy-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30080 # This allows access via http://localhost:30080 on Kind
