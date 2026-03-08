@@ -33,7 +33,7 @@ jobs:
       - name: Install and Test
         run: |
           cd app
-          pip install .[dev]
+          pip install -e .[dev]
           pytest
 
   # JOB 2: Deployment (Only runs on successful merge/push to MAIN)
