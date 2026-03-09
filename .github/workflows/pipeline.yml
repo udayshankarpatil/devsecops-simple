@@ -1,7 +1,7 @@
 name: Cloud-CI
 
 permissions:
-  contents: write    # Permission to push the updated deployment.yam back to Git
+  contents: write    # Permission to push the updated deployment.yml back to Git
   packages: write    # Permission to push the Docker image to GHCR
 
 on:
@@ -67,9 +67,6 @@ jobs:
 
       - name: Update GitOps Manifest
         run: |
-          echo "LISTING FILES BEFORE UPDATE:"
-          ls -R
-
           # Replace the image tag in the k8s manifest with the unique Git SHA
           # sed -i "s|image: ghcr.io/${{ github.repository_owner }}/dummy-app:.*|image: ghcr.io/${{ github.repository_owner }}/dummy-app:${{ github.sha }}|g" k8s/deployment.yml
           sed -i "s|\(image: ghcr.io/${{ github.repository_owner }}/dummy-app:\).*|\1${{ github.sha }}|g" k8s/deployment.yml
