@@ -43,7 +43,7 @@ jobs:
   # JOB 2: Deployment (Only runs on successful merge/push to MAIN)
   deploy-production:
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Dump GitHub Context
