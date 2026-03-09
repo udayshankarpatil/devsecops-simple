@@ -1,14 +1,14 @@
 name: Cloud-CI
 
 permissions:
-  contents: write    # Permission to push the updated deployment.yaml back to Git
+  contents: write    # Permission to push the updated deployment.yml back to Git
   packages: write    # Permission to push the Docker image to GHCR
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 jobs:
   # JOB 1: Verification (Always runs for PRs and Pushes)
@@ -17,6 +17,10 @@ jobs:
     container:
       image: python:3.11-slim
     steps:
+      - name: Dump GitHub Context
+        run: |
+          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+
       - name: Update packages
         run: |
           pip install --upgrade pip
@@ -42,6 +46,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - name: Dump GitHub Context
+        run: |
+          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+
       - uses: actions/checkout@v4
       
       - name: Login to GHCR
@@ -60,10 +68,10 @@ jobs:
       - name: Update GitOps Manifest
         run: |
           # Replace the image tag in the k8s manifest with the unique Git SHA
-          sed -i "s|image: .*|image: ghcr.io/${{ github.repository_owner }}/dummy-app:${{ github.sha }}|g" k8s/deployment.yaml
-          
+          # sed -i "s|image: ghcr.io/${{ github.repository_owner }}/dummy-app:.*|image: ghcr.io/${{ github.repository_owner }}/dummy-app:${{ github.sha }}|g" k8s/deployment.yml
+          sed -i "s|\(image: ghcr.io/${{ github.repository_owner }}/dummy-app:\).*|\1${{ github.sha }}|g" k8s/deployment.yml
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add k8s/deployment.yaml
+          git add k8s/deployment.yml
           git commit -m "chore: deploy image ${{ github.sha }} to production"
           git push
