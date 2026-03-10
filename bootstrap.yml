@@ -3,20 +3,94 @@
   hosts: localhost
   connection: local
   tasks:
-    - name: Provision Kind Cluster with Terraform
+
+    - name: Pre-Flight | Check if Docker is running
+      ansible.builtin.command: docker info
+      register: docker_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Pre-Flight | Fail if Docker is not accessible
+      ansible.builtin.fail:
+        msg: >
+          Docker is not running or accessible! 
+          Please ensure Docker Desktop is started and WSL integration is enabled.
+      when: docker_check.rc != 0
+
+    - name: Pre-Flight | Check for stale Terraform state
+      ansible.builtin.stat:
+        path: "./terraform/terraform.tfstate"
+      register: st_file
+
+    - name: Ensure Infrastructure is Provisioned
       community.general.terraform:
         project_path: "./terraform"
         state: present
         force_init: true
+        init_reconfigure: true
+      register: tf_result
 
-    - name: Add ArgoCD via Helm
+    - name: Wait for Kind Cluster to be accessible
+      ansible.builtin.command:
+        cmd: kind get kubeconfig --name devops-lab
+      register: kubeconfig
+      until: kubeconfig.rc == 0
+      retries: 5
+      delay: 10
+
+    - name: Set Kubeconfig Fact
+      ansible.builtin.set_fact:
+        my_kubeconfig: "{{ tf_result.outputs.kubeconfig.value }}"
+
+    - name: Write Kubeconfig to temporary file
+      ansible.builtin.copy:
+        content: "{{ my_kubeconfig }}"
+        dest: "./terraform/kubeconfig.yaml"
+        mode: '0600'
+
+    - name: Add ArgoCD Helm Repo
+      kubernetes.core.helm_repository:
+        name: argo
+        repo_url: "https://argoproj.github.io/argo-helm"
+
+    - name: Install ArgoCD via Helm
       kubernetes.core.helm:
         name: argocd
         chart_ref: argo/argo-cd
         release_namespace: argocd
         create_namespace: true
+        kubeconfig: "./terraform/kubeconfig.yaml"
+        # Using a dictionary for values is more reliable than 'set_values'
+        values:
+          server:
+            service:
+              type: NodePort
+              nodePort:
+                https: 30443
+        wait: true
+
+    - name: Force ArgoCD Server to NodePort (Corrected)
+      kubernetes.core.k8s:
+        state: patched
+        kind: Service
+        name: argocd-server
+        namespace: argocd
+        definition:
+          spec:
+            type: NodePort
+            ports:
+              - name: http
+                port: 80
+                targetPort: 8080
+                nodePort: 30081  # Changed from 30080
+              - name: https
+                port: 443
+                targetPort: 8080
+                nodePort: 30443  # This remains your Argo UI access
+        kubeconfig: "./terraform/kubeconfig.yaml"
 
     - name: Apply ArgoCD Application Manifest
       kubernetes.core.k8s:
         state: present
         src: ./k8s/argocd-app.yml
+
