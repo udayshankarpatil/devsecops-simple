@@ -23,15 +23,24 @@
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Install baseline dependencies
+    - name: Install baseline system dependencies
       ansible.builtin.apt:
         name:
           - curl
           - apt-transport-https
           - ca-certificates
           - gnupg
+          # You can keep python3-pip for other system needs
           - python3-pip
         state: present
+      become: true
+
+    - name: Ensure Kubernetes libraries are in the Conda environment (Direct Pip)
+      ansible.builtin.shell:
+        cmd: "/home/uday/miniconda3/bin/python3.13 -m pip install kubernetes PyYAML"
+      # This makes it idempotent so it doesn't "change" if libraries are already there
+      register: pip_check
+      changed_when: "'Successfully installed' in pip_check.stdout"
 
     - name: Install Kubectl via official Repo
       ansible.builtin.shell: |
@@ -53,3 +62,9 @@
         cmd: curl {{helm_script_url}} | bash
         creates: "{{tools_bin}}/helm"
       become: true
+
+    - name: Install Terraform
+      ansible.builtin.shell: |
+        wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update && sudo apt install terraform

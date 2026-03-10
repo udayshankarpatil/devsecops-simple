@@ -1,2 +1,22 @@
 app/src/dummy_app.egg-info/
+
+# --- Terraform Clutter ---
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfplan
+
+# --- Kubernetes/Kind Secrets ---
+kubeconfig.yaml
+*.kubeconfig
+
+# --- Ansible temporary files ---
+*.retry
+ansible_debug.log
+
+# --- OS/IDE Clutter ---
+.DS_Store
+.venv/
 __pycache__/
+terraform/devops-lab-config
