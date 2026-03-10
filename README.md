@@ -1,7 +1,36 @@
 ![Build Status](https://github.com/udayshankarpatil/devsecops-simple/actions/workflows/pipeline.yml/badge.badge.svg)
 
+
 # DevSecOps Simple
-A DevSecOps "Hello World!" project
+A DevSecOps "Hello World!" project.
+
+
+## CI/CD Workflow
+```mermaid
+graph TD
+
+  ci["CI (cloud)"]
+  
+
+  p[PR]
+  b[Build+Test]
+  m[Merge]
+  i[Image]
+  r["GHCR (registry)"]
+  c[Code Repo]
+
+  c -->|edit| p --> b --> m --> i
+  m -->|push merged| c
+  i -->|upload| r
+  i -->|inject image id| c
+
+  c -->|watch| id(Image ID)
+  id -->image(Image)
+  r -->|download| image
+  image -->|deploy/replace| container(Pods)
+
+  cd("CD (local)")
+```
 
 
 ## Setup for WSL Ubuntu
@@ -12,9 +41,6 @@ Install [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-i
 
 **In WSL Ubuntu**
 ```shell
-# Check Ubuntu Version
-hostnamectl
-
 # Install Ansible
 pip install ansible
 
@@ -25,23 +51,35 @@ ansible-playbook -K setup/sys_wsl.yml
 ansible-playbook bootstrap.yml
 ```
 
-For ansible dry-runs, use one of the following
+
+## Run Application
+
+Test [Application API](http://localhost:30080/) in browser  
+
+Explore [ArgoCD Web UI](https://localhost:30443) (requires login)
 ```shell
-# Add one of the following options to your ansible-playbook command
---check | --diff | --list-hosts | --list-tasks | --syntax-check
-# Or
-ansible-lint <playbook>.yml
+# username
+admin
+
+# password (query)
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 ```
 
-**Terraform Utils**
-```
+
+## Useful
+```shell
+# Check Ubuntu Version
+hostnamectl
+
+# Ansible dry runs
+ansible-playbook [--check | --list-tasks | --syntax-check] <playbook>.yml
+ansible-lint <playbook>.yml
+
+# Terraform
 cd terraform
 terraform providers
 terraform show
-```
 
-**kubectl**
-```shell
 # Infrastructure
 kubectl get nodes
 kubectl get svc
@@ -53,6 +91,20 @@ kubectl describe pod dummy-app
 
 # ArgoCD
 kubectl get svc -n argocd
+
+# ArgoCD password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 ```
-[Application](http://localhost:30080/)   [ArgoCD](https://localhost:30443)
+
+
+## TODO
+- Containerize local dev env
+- Cluster *tear down* playbook
+- Security checks
+
+
+## FIX
+- Eliminate ouble commits on merge to `main` branch
+- Allow direct push for `dev` branch
+- Remove temp files created by `terraform`
+- Skip image builds for non-application code changes
