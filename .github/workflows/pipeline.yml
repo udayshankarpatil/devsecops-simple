@@ -48,7 +48,7 @@ jobs:
   # JOB 2: Update Manifest (Only runs for PRs to temp)
   update-manifest:
     needs: build-and-test
-    if: github.event_name == 'pull_request' && github.base_ref == 'refs/heads/temp'
+    if: github.event_name == 'pull_request' && github.base_ref == 'temp'
     runs-on: ubuntu-latest
     steps:
       - *github-context
