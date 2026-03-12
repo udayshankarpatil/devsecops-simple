@@ -1,12 +1,15 @@
 name: Cloud-CI
 
+
 permissions:
   contents: write    # Permission to push the updated deployment.yml back to Git
   packages: write    # Permission to push the Docker image to GHCR
 
+
 on:
   pull_request:
     branches: [ temp, dev ]
+
 
 jobs:
   
