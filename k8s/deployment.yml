@@ -17,7 +17,7 @@ spec:
       containers:
       - name: dummy-app
         # The pipeline 'sed' command specifically targets this line
-        image: ghcr.io/udayshankarpatil/dummy-app:efba0b12dce95b3869acc6ff75b2fa203e48a3b0
+        image: ghcr.io/udayshankarpatil/dummy-app:7c2a3d37d9e0a14b923052fefa41ace873618378
         ports:
         - containerPort: 80
         # Recommended: Ensures K8s always tries to get the latest version of that specific tag
