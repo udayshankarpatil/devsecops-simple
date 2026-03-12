@@ -9,6 +9,7 @@ on:
     branches: [ temp, dev ]
 
 jobs:
+  
   # JOB 1: Verification (Always runs for PRs and Pushes)
   build-and-test:
     runs-on: ubuntu-latest
