@@ -57,11 +57,12 @@ ansible-playbook bootstrap.yml
 Test [Application API](http://localhost:30080/) in browser  
 
 Explore [ArgoCD Web UI](https://localhost:30443) (requires login)
-```shell
-# username
-admin
 
-# password (query)
+**username / password** 
+```
+admin
+```
+```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 ```
 
