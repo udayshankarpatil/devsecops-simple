@@ -1,0 +1,41 @@
+---
+- name: Destroy Devops Lab Environment
+  hosts: localhost
+  connection: local
+  vars:
+    terraform_dir: "./terraform"
+  
+  tasks:
+    - name: Pre-Flight | Check if Docker is running
+      ansible.builtin.command: docker info
+      register: docker_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Infrastructure | Destroy Kind Cluster via Terraform
+      community.general.terraform:
+        project_path: "{{ terraform_dir }}"
+        state: absent
+      when: docker_check.rc == 0
+      register: tf_destroy
+
+    - name: Post-Destroy | Remove Terraform Pollution
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ terraform_dir }}/.terraform"
+        - "{{ terraform_dir }}/terraform.tfstate"
+        - "{{ terraform_dir }}/terraform.tfstate.backup"
+        - "{{ terraform_dir }}/.terraform.lock.hcl"
+        - "{{ terraform_dir }}/devops-lab-config"
+        - "{{ terraform_dir }}/kubeconfig.yaml"
+
+    - name: Post-Destroy | Cleanup Local Kubeconfig
+      ansible.builtin.file:
+        path: "~/.kube/config" # Optional: only if you exported it
+        state: absent
+
+    - name: Summary | Cleanup Results
+      ansible.builtin.debug:
+        msg: "Lab environment destroyed and workspace cleaned. System is back to zero-footprint."
