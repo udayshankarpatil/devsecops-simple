@@ -5,10 +5,8 @@ permissions:
   packages: write    # Permission to push the Docker image to GHCR
 
 on:
-  push:
-    branches: [ main, dev ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ temp, dev ]
 
 jobs:
   # JOB 1: Verification (Always runs for PRs and Pushes)
@@ -17,9 +15,13 @@ jobs:
     container:
       image: python:3.11-slim
     steps:
-      - name: Dump GitHub Context
+      - &github-context
+        name: Dump GitHub Context
         run: |
-          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Reference: ${{ github.ref }}"
+          echo "Head Ref: ${{ github.head_ref }}"
+          echo "Base Ref: ${{ github.base_ref }}"
 
       - name: Update packages
         run: |
@@ -27,6 +29,8 @@ jobs:
       
       - name: Checkout Code
         uses: actions/checkout@v4  # This pulls the code INTO the container's workspace
+
+      - *github-context
 
       - name: Where am I?
         run: |
@@ -40,17 +44,18 @@ jobs:
           pip install -e .[dev]
           pytest
 
-  # JOB 2: Deployment (Only runs on successful merge/push to MAIN)
-  deploy-production:
+
+  # JOB 2: Update Manifest (Only runs for PRs to temp)
+  update-manifest:
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' && github.base_ref == 'refs/heads/temp'
     runs-on: ubuntu-latest
     steps:
-      - name: Dump GitHub Context
-        run: |
-          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+      - *github-context
 
       - uses: actions/checkout@v4
+        
+      - *github-context
       
       - name: Login to GHCR
         uses: docker/login-action@v3
