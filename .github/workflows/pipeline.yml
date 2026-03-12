@@ -17,9 +17,13 @@ jobs:
     container:
       image: python:3.11-slim
     steps:
-      - name: Dump GitHub Context
+      - &github-context
+        name: Dump GitHub Context
         run: |
-          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Reference: ${{ github.ref }}"
+          echo "Head Ref: ${{ github.head_ref }}"
+          echo "Base Ref: ${{ github.base_ref }}"
 
       - name: Update packages
         run: |
@@ -40,15 +44,14 @@ jobs:
           pip install -e .[dev]
           pytest
 
+
   # JOB 2: Deployment (Only runs on successful merge/push to MAIN)
   deploy-production:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Dump GitHub Context
-        run: |
-          echo "Event: ${{ github.event_name }} | Ref: ${{ github.ref }}"
+      - *github-context
 
       - uses: actions/checkout@v4
       
